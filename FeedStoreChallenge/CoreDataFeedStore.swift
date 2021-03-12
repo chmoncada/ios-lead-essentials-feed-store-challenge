@@ -55,14 +55,7 @@ public final class CoreDataFeedStore: FeedStore {
 			do {
 				let cache = try CoreDataCache.newCache(in: context)
 				cache.timestamp = timestamp
-				cache.feed = NSOrderedSet(array: feed.map{ local in
-					let coreDataFeedImage = CoreDataFeedImage(context: context)
-					coreDataFeedImage.id = local.id
-					coreDataFeedImage.imageDescription = local.description
-					coreDataFeedImage.location = local.location
-					coreDataFeedImage.url = local.url
-					return coreDataFeedImage
-				})
+				cache.feed = CoreDataFeedImage.feedImages(from: feed, in: context)
 				try context.save()
 				completion(nil)
 			} catch {
@@ -130,5 +123,16 @@ private class CoreDataFeedImage: NSManagedObject {
 
 	var local: LocalFeedImage {
 		.init(id: id, description: imageDescription, location: location, url: url)
+	}
+
+	static func feedImages(from localFeed: [LocalFeedImage], in context: NSManagedObjectContext) -> NSOrderedSet {
+		NSOrderedSet(array: localFeed.map{ local in
+			let coreDataFeedImage = CoreDataFeedImage(context: context)
+			coreDataFeedImage.id = local.id
+			coreDataFeedImage.imageDescription = local.description
+			coreDataFeedImage.location = local.location
+			coreDataFeedImage.url = local.url
+			return coreDataFeedImage
+		})
 	}
  }
