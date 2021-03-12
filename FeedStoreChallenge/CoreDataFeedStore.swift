@@ -24,9 +24,7 @@ public final class CoreDataFeedStore: FeedStore {
 		let context = self.context
 		context.perform {
 			do {
-				let request = NSFetchRequest<CoreDataCache>(entityName: CoreDataCache.entity().name!)
-				request.returnsObjectsAsFaults = false
-				if let cache = try context.fetch(request).first {
+				if let cache = try CoreDataCache.cache(in: context) {
 					completion(.found(
 								feed: cache.feed
 									.compactMap { $0 as? CoreDataFeedImage }
@@ -99,6 +97,15 @@ private extension NSPersistentContainer {
 private class CoreDataCache: NSManagedObject {
 	@NSManaged var timestamp: Date
 	@NSManaged var feed: NSOrderedSet
+
+	// Helpers
+
+	static func cache(in context: NSManagedObjectContext) throws -> CoreDataCache? {
+		let request = NSFetchRequest<CoreDataCache>(entityName: CoreDataCache.entity().name!)
+		request.returnsObjectsAsFaults = false
+		return try context.fetch(request).first
+	}
+
  }
 
 @objc(CoreDataFeedImage)
