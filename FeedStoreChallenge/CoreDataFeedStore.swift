@@ -26,11 +26,7 @@ public final class CoreDataFeedStore: FeedStore {
 			do {
 				if let cache = try CoreDataCache.cache(in: context) {
 					completion(.found(
-								feed: cache.feed
-									.compactMap { $0 as? CoreDataFeedImage }
-									.map {
-										LocalFeedImage(id: $0.id, description: $0.imageDescription, location: $0.location, url: $0.url)
-									},
+								feed: cache.localFeed,
 								timestamp: cache.timestamp))
 				} else {
 					completion(.empty)
@@ -108,6 +104,10 @@ private class CoreDataCache: NSManagedObject {
 
 	// Helpers
 
+	var localFeed: [LocalFeedImage] {
+		feed.compactMap { ($0 as? CoreDataFeedImage)?.local }
+	}
+
 	static func cache(in context: NSManagedObjectContext) throws -> CoreDataCache? {
 		let request = NSFetchRequest<CoreDataCache>(entityName: CoreDataCache.entity().name!)
 		request.returnsObjectsAsFaults = false
@@ -127,4 +127,8 @@ private class CoreDataFeedImage: NSManagedObject {
 	@NSManaged var location: String?
 	@NSManaged var url: URL
 	@NSManaged var cache: CoreDataCache
+
+	var local: LocalFeedImage {
+		.init(id: id, description: imageDescription, location: location, url: url)
+	}
  }
