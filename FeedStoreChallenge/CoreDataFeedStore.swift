@@ -49,7 +49,7 @@ public final class CoreDataFeedStore: FeedStore {
 		let context = self.context
 		context.perform {
 			do {
-				let cache = CoreDataCache(context: context)
+				let cache = try CoreDataCache.newCache(in: context)
 				cache.timestamp = timestamp
 				cache.feed = NSOrderedSet(array: feed.map{ local in
 					let coreDataFeedImage = CoreDataFeedImage(context: context)
@@ -106,6 +106,10 @@ private class CoreDataCache: NSManagedObject {
 		return try context.fetch(request).first
 	}
 
+	static func newCache(in context: NSManagedObjectContext) throws -> CoreDataCache {
+		try cache(in: context).map { context.delete($0) }
+		return CoreDataCache(context: context)
+	}
  }
 
 @objc(CoreDataFeedImage)
